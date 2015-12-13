@@ -6,6 +6,7 @@ var defaultStore = {
   cities: [
     {
       name: "Санкт-Петербург",
+      country: "Россия",
       latitude: 0,
       longitude: 0
     }
@@ -64,6 +65,25 @@ vent.on('store:load', function() {
     var query = { $set: data };
     store = update(store, query);
     vent.trigger('store:updated');
+  }
+});
+
+vent.on('store:cities:detect', function() {
+  if(typeof ymaps !== 'undefined') {
+    ymaps.ready(function() {
+      var geo = ymaps.geolocation;
+      var city = {
+        name: geo.city,
+        country: geo.country,
+        latitude: geo.latitude,
+        longitude: geo.longitude
+      };
+      var query = { cities: { $set: [ city ] }};
+      store = update(store, query);
+      vent.trigger('store:updated');
+    });
+  } else {
+    vent.trigger('store:cities:detect:failed');
   }
 });
 
