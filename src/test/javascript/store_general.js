@@ -1,6 +1,7 @@
 var
   vent = require('../../main/javascript/vent.js'),
-  store = require('../../main/javascript/store.js');
+  store = require('../../main/javascript/store.js'),
+  guid = require('../../main/javascript/guid.js');
 
 describe('Store', function() {
 
@@ -13,12 +14,13 @@ describe('Store', function() {
     vent.trigger('store:clear');
   });
 
-  it('should contain cities collection', function() {
+  xit('should contain cities collection', function() {
     expect(store().cities).toEqual(jasmine.any(Object));
   });
 
   it('should add a city by request', function(done) {
     var city = {
+      guid: guid(),
       name: "City",
       latitude: 1,
       longitude: 2
@@ -28,24 +30,26 @@ describe('Store', function() {
 
     var callback = function() {
       vent.off('store:updated', callback);
-      expect(store().cities).toContain(city);
+      expect(Object.keys(store().cities)).toContain(city.guid);
       expect(store().cities === oldCities).toBe(false);
       done();
     }
 
-    expect(store().cities).not.toContain(city);
+    expect(Object.keys(store().cities)).not.toContain(city.guid);
     vent.on('store:updated', callback);
     vent.trigger('store:cities:add', city);
   });
 
   it('should delete a city by request', function(done) {
     var city1 = {
+      guid: guid(),
       name: "City1",
       latitude: 1,
       longitude: 2
     };
 
     var city2 = {
+      guid: guid(),
       name: "City2",
       latitude: 1,
       longitude: 2
@@ -53,14 +57,14 @@ describe('Store', function() {
 
     var afterDelete = function() {
       vent.off('store:updated', afterDelete);
-      expect(store().cities).toEqual([city2]);
+      expect(Object.keys(store().cities)).toEqual([city2.guid]);
       done();
     };
 
     var afterAdd2 = function() {
       vent.off('store:updated', afterAdd2);
       vent.on('store:updated', afterDelete);
-      vent.trigger('store:cities:delete', "City1");
+      vent.trigger('store:cities:delete', city1.guid);
     };
 
     var afterAdd1 = function() {
@@ -77,7 +81,7 @@ describe('Store', function() {
     var oldStore = store();
     var callback = function() {
       vent.off('store:updated', callback);
-      expect(store().cities).toEqual([]);
+      expect(store().cities).toEqual({});
       expect(store() === oldStore).toBe(false);
       done();
     }
@@ -141,7 +145,9 @@ describe('Store', function() {
 
     var callback = function() {
       vent.off('store:updated', callback);
-      expect(store().cities[0].name).toBe("Санкт-Петербург");
+      var key = Object.keys(store().cities)[0];
+      expect(key).not.toBe(null);
+      expect(store().cities[key].name).toBe("Санкт-Петербург");
       done();
     }
 

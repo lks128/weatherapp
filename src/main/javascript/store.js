@@ -1,54 +1,65 @@
 var
   vent = require('./vent'),
-  update = require('react-addons-update');
+  update = require('react-addons-update'),
+  get = require('jquery').get,
+  guid = require('./guid');
 
-var defaultStore = {
-  cities: [
-    {
-      name: "Санкт-Петербург",
-      country: "Россия",
-      latitude: 0,
-      longitude: 0
-    }
-  ]
-};
+var defaultStore = (function() {
+  var city = {
+    guid: guid(),
+    name: "Санкт-Петербург",
+    description: "Санкт-Петербург, Россия",
+    latitude: 59.938531,
+    longitude: 30.313497
+  };
+
+  var obj = { cities: {}, predictions: [] };
+  obj.cities[city.guid] = city;
+
+  return obj
+}());
 
 var store = {
-    cities: []
+    cities: {},
+    predictions: []
 };
 
 module.exports = function() {
   return store;
 };
 
-vent.on('store:cities:add', function(data) {
-  var query = { cities: { $push: [data] }};
-  store = update(store, query);
-  vent.trigger('store:updated');
+vent.on('init', function() {
+  vent.trigger('store:load');
 });
 
-vent.on('store:cities:delete', function(name) {
-  var index = -1;
-  for(var i = 0; i < store.cities.length; i++) {
-    if(store.cities[i].name === name) {
-      index = i;
-      break;
-    }
-  }
+vent.on('store:updated', function() {
+  console.log('STORE', store);
+});
 
-  if(index > -1) {
-    var query = { cities: { $splice: [[index, 1]] } };
-    store = update(store, query);
-    vent.trigger('store:updated');
-  } else {
-    console.log('no such city', name);
-  }
+vent.on('store:cities:add', function(data) {
+  var query = { cities: { }, predictions: { $set: [] } };
+  data.guid = data.guid || guid();
+  query.cities[data.guid] = { $set: data };
+  store = update(store, query);
+  vent.trigger('store:updated');
+  vent.trigger('store:save');
+});
+
+vent.on('store:cities:delete', function(guid) {
+  delete store.cities[guid];
+
+  // force reference update
+  var query = { cities: { $set: store.cities }};
+  store = update(store, query);
+  vent.trigger('store:updated');
+  vent.trigger('store:save');
 });
 
 vent.on('store:clear', function() {
-  var query = { cities: { $set: [] }};
+  var query = { cities: { $set: {} }, predictions: { $set: [] }};
   store = update(store, query);
   vent.trigger('store:updated');
+  vent.trigger('store:save');
 });
 
 vent.on('store:save', function() {
@@ -57,7 +68,7 @@ vent.on('store:save', function() {
 });
 
 vent.on('store:load', function() {
-  var data = JSON.parse(localStorage.weatherAppData);
+  var data = JSON.parse(localStorage.weatherAppData || null);
 
   if(data === null || typeof data.cities === 'undefined') {
     vent.trigger('store:cities:detect');
@@ -74,13 +85,19 @@ vent.on('store:cities:detect', function() {
       var geo = ymaps.geolocation;
       var city = {
         name: geo.city,
-        country: geo.country,
+        description: geo.city + ", " + geo.country,
         latitude: geo.latitude,
         longitude: geo.longitude
       };
-      var query = { cities: { $set: [ city ] }};
-      store = update(store, query);
-      vent.trigger('store:updated');
+      if((typeof city.name !== undefined)
+        && (typeof city.description !== undefined)
+        && (typeof city.latitude !== undefined)
+        && (typeof city.longitude !== undefined)) {
+          vent.trigger('store:cities:add', city);
+          vent.trigger('store:updated');
+        } else {
+          vent.trigger('store:cities:detect:failed');
+        }
     });
   } else {
     vent.trigger('store:cities:detect:failed');
@@ -91,4 +108,42 @@ vent.on('store:cities:detect:failed', function() {
   var query = { cities: { $set: defaultStore.cities }};
   store = update(store, query);
   vent.trigger('store:updated');
+});
+
+vent.on('city-finder:type', function(text) {
+  var url = "https://maps.googleapis.com/maps/api/place/autocomplete/json" +
+    "?types=(cities)&language=ru&key=AIzaSyA5DRWBKD8yuM7UHm3voNT5eTgK_36aIaA" +
+    "&input=" + text;
+
+  get(url, function(data) {
+    var query = { predictions: { $set: data.predictions } };
+    store = update(store, query);
+    vent.trigger('store:updated');
+  });
+});
+
+vent.on('city-finder:selected', function(data) {
+  var url = "https://maps.googleapis.com/maps/api/place/details/json" +
+    "?key=AIzaSyA5DRWBKD8yuM7UHm3voNT5eTgK_36aIaA&language=ru" +
+    "&reference=" + data.reference;
+
+  get(url, function(data) {
+    var city = {
+      latitude: data.result.geometry.location.lat,
+      longitude: data.result.geometry.location.lng,
+      name: data.result.name,
+      description: data.result.formatted_address
+    };
+    vent.trigger('store:cities:add', city);
+  });
+});
+
+vent.on('store:weather:fetch-current', function(cityObj) {
+  var url = "http://api.openweathermap.org/data/2.5/weather" +
+    "?lat=" + cityObj.latitude + "&lon=" + cityObj.longitude + "&units=metric" +
+    "&appid=f31ee16ddee5e607b770d4a58492e0fe";
+
+  get(url, function(data) {
+    var query = {  }
+  });
 });

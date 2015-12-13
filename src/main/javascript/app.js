@@ -4,10 +4,10 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 
 var // components
-  TestComponent = require('../react/TestComponent.jsx');
+  Application = require('../react/Application.jsx');
 
 // render react
-ReactDOM.render(React.createElement(TestComponent, null),
+ReactDOM.render(React.createElement(Application, null),
   document.getElementById('app'));
 
 // start app
