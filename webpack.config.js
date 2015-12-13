@@ -16,10 +16,7 @@ module.exports = {
   module: {
     loaders: [{
       test: /\.jsx$/,
-      loader: 'babel',
-      query: {
-        presets: ['react']
-      }
+      loader: 'react-hot!babel?{"presets":"react"}'
     },{
       test: /\.less$/,
       loader: 'style!css!less'
