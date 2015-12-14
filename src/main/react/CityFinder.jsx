@@ -35,8 +35,8 @@ module.exports = React.createClass({
       return <li onClick={that.selectCityFunc(x)}>{ x.description }</li>
     });
     return (
-      <div>
-        <input ref="city" onChange={ this.inputChange } type="text" placeholder="type"/>
+      <div data-component="CityFinder">
+        <input ref="city" onChange={ this.inputChange } type="text" placeholder="Добавить город"/>
         <ul>{ variants }</ul>
       </div>
     );
