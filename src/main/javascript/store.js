@@ -10,7 +10,8 @@ var defaultStore = (function() {
     name: "Санкт-Петербург",
     description: "Санкт-Петербург, Россия",
     latitude: 59.938531,
-    longitude: 30.313497
+    longitude: 30.313497,
+    weather: {}
   };
 
   var obj = { cities: {}, predictions: [] };
@@ -39,11 +40,13 @@ vent.on('store:updated', function() {
 vent.on('store:cities:add', function(data) {
   var query = { cities: { }, predictions: { $set: [] } };
   data.guid = data.guid || guid();
+  data.weather = data.weather || {};
   query.cities[data.guid] = { $set: data };
   store = update(store, query);
   vent.trigger('store:updated');
   vent.trigger('store:save');
   vent.trigger('store:weather:fetch-current', data);
+  vent.trigger('store:weather:fetch-daily', data);
 });
 
 vent.on('store:cities:delete', function(guid) {
@@ -78,6 +81,7 @@ vent.on('store:load', function() {
     store = update(store, query);
     Object.keys(store.cities).forEach(function(guid) {
       vent.trigger('store:weather:fetch-current', store.cities[guid]);
+      vent.trigger('store:weather:fetch-daily', store.cities[guid]);
     });
     vent.trigger('store:updated');
   }
@@ -149,7 +153,21 @@ vent.on('store:weather:fetch-current', function(cityObj) {
 
   get(url, function(data) {
     var query = { cities: {} };
-    query.cities[cityObj.guid] = { weather: { $set: { current: data } } };
+    query.cities[cityObj.guid] = { weather: { $merge: { current: data } } };
+    store = update(store, query);
+    vent.trigger('store:updated');
+    vent.trigger('store:save');
+  });
+});
+
+vent.on('store:weather:fetch-daily', function(cityObj) {
+  var url = "http://api.openweathermap.org/data/2.5/forecast/daily" +
+    "?lat=" + cityObj.latitude + "&lon=" + cityObj.longitude + "&units=metric" +
+    "&lang=ru&cnt=7&appid=f31ee16ddee5e607b770d4a58492e0fe";
+
+  get(url, function(data) {
+    var query = { cities: {} };
+    query.cities[cityObj.guid] = { weather: { $merge: { daily: data } } };
     store = update(store, query);
     vent.trigger('store:updated');
     vent.trigger('store:save');
