@@ -5,14 +5,6 @@
   left: 0;
   right: 0;
   box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
-  color: #7c7c7c;
-
-  & a {
-    cursor: pointer;
-    &:hover {
-      color: black;
-    }
-  }
 
   & ul {
     list-style: none;
@@ -20,61 +12,7 @@
   }
 
   & li {
-    border-bottom: 1px solid #e1e1e1;
-    padding: 20px;
-    cursor: pointer;
-    font-family: sans-serif;
-    display: flex;
-    flex-direction: column;
-    background: white;
-
-    & .top {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    &.active {
-      cursor: default;
-    }
-
-    &.active:hover {
-      background: white;
-    }
-
-    &:hover {
-      background: lightyellow;
-    }
-
-    & .left {
-      display: flex;
-      justify-content:flex-start;
-
-      & img {
-        margin-right: 20px;
-      }
-    }
-
-    & .name {
-      font-size: 28px;
-      font-weight: lighter;
-      line-height: 40px;
-    }
-
-    & .subline {
-      font-size: 12px;
-    }
-
-    & .temp {
-      font-size: 48px;
-      float: left;
-      color: black;
-    }
-
-    & .oc {
-      float: left;
-      font-size: 18px;
-      color: black;
-    }
+     border-bottom: 1px solid #e1e1e1;
 
     &:last-child {
       border-bottom: none;

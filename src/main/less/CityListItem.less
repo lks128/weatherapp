@@ -1,0 +1,65 @@
+[data-component="CityListItem"] {
+  background: white;
+  padding: 20px;
+  cursor: pointer;
+  font-family: sans-serif;
+  color: #7c7c7c;
+
+  &.selected {
+    cursor: default;
+    &.hover {
+      background: white;
+    }
+  }
+
+  &.hover {
+    background: lightyellow;
+  }
+
+  & > .top {
+    display: flex;
+    align-items: center;
+
+    & > .left {
+      & > img {
+        margin-right: 20px;
+      }
+    }
+
+    & > .center {
+      flex-grow: 1;
+
+      & > .name {
+        font-size: 28px;
+        font-weight: lighter;
+        line-height: 40px;
+      }
+
+      & > .info {
+        font-size: 12px;
+      }
+    }
+
+    & > .right {
+      & > .temp {
+        font-size: 48px;
+        float: left;
+        color: black;
+      }
+
+      & > .celsius {
+        float: left;
+        font-size: 18px;
+        color: black;
+      }
+    }
+  }
+
+  & > .actions {
+    font-size: 12px;
+    text-align: right;
+    & > a {
+      cursor: pointer;
+    }
+  }
+}
