@@ -1,3 +1,3 @@
 # weatherapp
 
-<img src=http://imgur.com/PM0T1QI>
+<img src=http://i.imgur.com/PM0T1QI.png>
