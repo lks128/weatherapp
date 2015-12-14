@@ -12,3 +12,8 @@ ReactDOM.render(React.createElement(Application, null),
 
 // start app
 vent.trigger('init');
+
+// update every 5 minutes
+setInterval(function() {
+  vent.trigger('store:load');
+}, 1000 * 60 * 5);
